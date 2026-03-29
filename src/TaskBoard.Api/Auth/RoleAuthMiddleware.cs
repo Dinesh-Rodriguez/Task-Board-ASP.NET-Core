@@ -25,8 +25,20 @@ public class RoleAuthMiddleware
         if (!context.Request.Headers.TryGetValue("X-User-Id", out var userIdRaw) ||
             !int.TryParse(userIdRaw, out var userId))
         {
-            // No identity supplied — allow the request through as anonymous.
-            // Individual [RequireRole] attributes will block if auth is needed.
+            // No identity supplied — check whether the endpoint requires a role.
+            // If it does, reject the anonymous request with 403.
+            var endpointMeta = context.GetEndpoint();
+            if (endpointMeta?.Metadata.GetMetadata<RequireRoleAttribute>() is not null)
+            {
+                context.Response.StatusCode  = (int)HttpStatusCode.Forbidden;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    error = "Authentication required. Provide an X-User-Id header."
+                }));
+                return;
+            }
+
             await _next(context);
             return;
         }

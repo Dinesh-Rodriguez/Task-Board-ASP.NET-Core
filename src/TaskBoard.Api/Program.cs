@@ -89,7 +89,17 @@ try
     var app = builder.Build();
 
     // ── Middleware pipeline ───────────────────────────────────────────────────
-    app.UseSerilogRequestLogging();
+    app.UseMiddleware<CorrelationIdMiddleware>();
+    app.UseSerilogRequestLogging(opts =>
+    {
+        opts.EnrichDiagnosticContext = (diag, ctx) =>
+        {
+            diag.Set("RequestHost", ctx.Request.Host.Value);
+            diag.Set("UserAgent",   ctx.Request.Headers.UserAgent.ToString());
+            if (ctx.Request.Headers.TryGetValue("X-User-Id", out var uid))
+                diag.Set("UserId", uid.ToString());
+        };
+    });
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseMiddleware<RoleAuthMiddleware>();
 
@@ -103,6 +113,13 @@ try
     app.UseAuthorization();
     app.MapControllers();
 
+    // ── Seed demo data ────────────────────────────────────────────────────────
+    if (app.Configuration.GetValue<bool>("SeedData:Enabled"))
+    {
+        var seederLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("DataSeeder");
+        await DataSeeder.SeedAsync(app.Services, seederLogger);
+    }
+
     app.Run();
 }
 catch (Exception ex)
@@ -113,3 +130,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Expose Program to integration test projects
+public partial class Program { }
