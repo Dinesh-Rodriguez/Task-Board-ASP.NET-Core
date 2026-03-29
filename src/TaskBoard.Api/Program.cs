@@ -23,8 +23,10 @@ try
     builder.Host.UseSerilog();
 
     // ── Database ──────────────────────────────────────────────────────────────
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseMySql(connectionString, serverVersion));
 
     // ── Repositories ──────────────────────────────────────────────────────────
     builder.Services.AddScoped<IUserRepository, UserRepository>();
