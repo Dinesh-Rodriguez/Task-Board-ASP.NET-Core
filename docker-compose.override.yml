@@ -1,0 +1,10 @@
+# Development overrides — applied on top of docker-compose.yml when running locally.
+# Usage: docker compose up  (this file is picked up automatically)
+
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=db;Database=TaskBoardDb_Dev;User Id=sa;Password=TaskBoard_Dev1;TrustServerCertificate=True;"
+      SeedData__Enabled: "true"
+      Serilog__MinimumLevel__Default: "Debug"
