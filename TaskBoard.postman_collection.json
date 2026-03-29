@@ -1,0 +1,280 @@
+{
+  "info": {
+    "name": "Task Board API",
+    "_postman_id": "taskboard-api-v1",
+    "description": "Task Board REST API — projects, tasks, RBAC. Set the baseUrl variable before running.\n\nAuth headers (X-User-Id, X-User-Role) are pre-set on every request via collection variables.\nDefault: Alice (id=1, Admin). Change userId/userRole variables to switch users.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5173", "type": "string" },
+    { "key": "userId",  "value": "1",     "type": "string" },
+    { "key": "userRole","value": "Admin",  "type": "string" },
+    { "key": "projectId", "value": "1",   "type": "string" },
+    { "key": "taskId",    "value": "1",   "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Get projects for user",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"],
+              "query": [{ "key": "userId", "value": "{{userId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get project by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create project",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" },
+              { "key": "Content-Type","value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My New Project\",\n  \"description\": \"A short description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projects?ownerId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"],
+              "query": [{ "key": "ownerId", "value": "{{userId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Update project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" },
+              { "key": "Content-Type","value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}"]
+            }
+          }
+        },
+        {
+          "name": "Archive project [Admin]",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "Admin" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Delete project [Admin]",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "Admin" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get tasks for project (paged)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks?page=1&pageSize=20&sortBy=createdAt&sortDir=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{projectId}}", "tasks"],
+              "query": [
+                { "key": "page",     "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "sortBy",   "value": "createdAt" },
+                { "key": "sortDir",  "value": "desc" },
+                { "key": "status",   "value": "0", "disabled": true },
+                { "key": "priority", "value": "2", "disabled": true },
+                { "key": "assigneeId", "value": "2", "disabled": true },
+                { "key": "includeArchived", "value": "false", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Get tasks by project",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?projectId={{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [{ "key": "projectId", "value": "{{projectId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get task by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" },
+              { "key": "Content-Type","value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fix login bug\",\n  \"description\": \"Users can't log in on mobile\",\n  \"projectId\": {{projectId}},\n  \"assigneeId\": 2,\n  \"priority\": 2,\n  \"dueDate\": \"2026-04-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          }
+        },
+        {
+          "name": "Update task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" },
+              { "key": "Content-Type","value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Fix login bug (updated)\",\n  \"description\": \"Tracked down to token expiry handling\",\n  \"assigneeId\": 2,\n  \"priority\": 3,\n  \"dueDate\": \"2026-05-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update task status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" },
+              { "key": "Content-Type","value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": 1\n}",
+              "options": {
+                "raw": {
+                  "description": "Status values: 0=Todo, 1=InProgress, 2=InReview, 3=Done, 4=Cancelled"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Archive task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "{{userRole}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}/archive",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}", "archive"]
+            }
+          }
+        },
+        {
+          "name": "Delete task [Admin]",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-User-Id",   "value": "{{userId}}" },
+              { "key": "X-User-Role", "value": "Admin" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

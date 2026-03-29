@@ -34,6 +34,17 @@ API runs on http://localhost:5173 - Swagger at http://localhost:5173/swagger
 
 Demo data (Alice/Bob/Carol + 2 projects + 6 tasks) seeds automatically in Development.
 
+## Exploring the API
+
+**Option 1 — Swagger UI** (easiest): open `http://localhost:5173/swagger`, click Authorize, enter `X-User-Id: 1` and `X-User-Role: Admin`, then try any endpoint directly in the browser.
+
+**Option 2 — Postman**: import `TaskBoard.postman_collection.json` from the repo root. All requests have the auth headers pre-set. Collection variables (`baseUrl`, `userId`, `userRole`, `projectId`, `taskId`) let you switch context without editing individual requests. Default user is Alice (Admin, id=1).
+
+**Option 3 — curl quick check**:
+```bash
+curl http://localhost:5173/api/projects?userId=1 -H "X-User-Id: 1" -H "X-User-Role: Admin"
+```
+
 ## Running Tests
 
     dotnet test TaskBoard.slnx
