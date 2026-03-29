@@ -45,6 +45,14 @@ public class TaskService : ITaskService
         var task = await _tasks.GetByIdAsync(id, ct)
             ?? throw new KeyNotFoundException($"Task {id} not found.");
 
+        if (!TaskStatusTransitionRules.IsValid(task.Status, status))
+        {
+            var allowed = TaskStatusTransitionRules.GetAllowedTransitions(task.Status);
+            throw new InvalidOperationException(
+                $"Cannot transition task from '{task.Status}' to '{status}'. " +
+                $"Allowed transitions: {string.Join(", ", allowed)}.");
+        }
+
         task.Title = title;
         task.Description = description;
         task.Status = status;
@@ -61,6 +69,14 @@ public class TaskService : ITaskService
     {
         var task = await _tasks.GetByIdAsync(id, ct)
             ?? throw new KeyNotFoundException($"Task {id} not found.");
+
+        if (!TaskStatusTransitionRules.IsValid(task.Status, status))
+        {
+            var allowed = TaskStatusTransitionRules.GetAllowedTransitions(task.Status);
+            throw new InvalidOperationException(
+                $"Cannot transition task from '{task.Status}' to '{status}'. " +
+                $"Allowed transitions: {string.Join(", ", allowed)}.");
+        }
 
         task.Status = status;
         _tasks.Update(task);
