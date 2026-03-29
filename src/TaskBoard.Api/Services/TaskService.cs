@@ -1,3 +1,5 @@
+using TaskBoard.Api.DTOs;
+using TaskBoard.Api.DTOs.Tasks;
 using TaskBoard.Api.Enums;
 using TaskBoard.Api.Models;
 using TaskBoard.Api.Repositories;
@@ -12,6 +14,20 @@ public class TaskService : ITaskService
     public TaskService(ITaskRepository tasks)
     {
         _tasks = tasks;
+    }
+
+    public async Task<PagedResponse<TaskItem>> GetPagedByProjectAsync(int projectId, TaskQueryParams query, CancellationToken ct = default)
+    {
+        var page     = Math.Max(1, query.Page);
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        var (items, total) = await _tasks.GetPagedByProjectAsync(projectId, query, ct);
+        return new PagedResponse<TaskItem>
+        {
+            Items      = items,
+            Page       = page,
+            PageSize   = pageSize,
+            TotalCount = total
+        };
     }
 
     public Task<IReadOnlyList<TaskItem>> GetByProjectAsync(int projectId, CancellationToken ct = default)

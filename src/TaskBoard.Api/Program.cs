@@ -1,8 +1,11 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using Serilog;
+using TaskBoard.Api.Auth;
 using TaskBoard.Api.Data;
+using TaskBoard.Api.Middleware;
 using TaskBoard.Api.Repositories;
 using TaskBoard.Api.Services;
 
@@ -42,17 +45,53 @@ try
     builder.Services.AddSwaggerGen(c =>
     {
         var settings = builder.Configuration.GetSection("ApiSettings");
-        c.SwaggerDoc(settings["Version"] ?? "v1", new()
+        var version  = settings["Version"] ?? "v1";
+
+        c.SwaggerDoc(version, new OpenApiInfo
         {
-            Title   = settings["Title"] ?? "Task Board API",
-            Version = settings["Version"] ?? "v1"
+            Title       = settings["Title"] ?? "Task Board API",
+            Version     = version,
+            Description = "A RESTful API for managing task boards, projects, and team members.\n\n" +
+                          "## Authentication\n" +
+                          "This API uses simple header-based identity for development/demo purposes.\n\n" +
+                          "Supply these headers on requests:\n" +
+                          "- **X-User-Id** (integer) — the caller's user ID\n" +
+                          "- **X-User-Role** — `Member` (default) or `Admin`\n\n" +
+                          "Endpoints marked **[Admin]** require `X-User-Role: Admin`."
         });
+
+        c.AddSecurityDefinition("UserIdHeader", new OpenApiSecurityScheme
+        {
+            Name        = "X-User-Id",
+            In          = ParameterLocation.Header,
+            Type        = SecuritySchemeType.ApiKey,
+            Description = "Caller user ID (integer)"
+        });
+        c.AddSecurityDefinition("UserRoleHeader", new OpenApiSecurityScheme
+        {
+            Name        = "X-User-Role",
+            In          = ParameterLocation.Header,
+            Type        = SecuritySchemeType.ApiKey,
+            Description = "Caller role: Member (default) or Admin"
+        });
+        c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+        {
+            { new OpenApiSecuritySchemeReference("UserIdHeader",   doc), [] },
+            { new OpenApiSecuritySchemeReference("UserRoleHeader", doc), [] }
+        });
+
+        // Include XML doc comments if present
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
     });
 
     var app = builder.Build();
 
     // ── Middleware pipeline ───────────────────────────────────────────────────
     app.UseSerilogRequestLogging();
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+    app.UseMiddleware<RoleAuthMiddleware>();
 
     if (app.Environment.IsDevelopment())
     {
